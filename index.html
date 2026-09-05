@@ -254,9 +254,65 @@
   .footer-social:hover{color:var(--copper-light);}
   .footer-addr{color:#9E9384;font-size:0.86rem;line-height:1.5;}
   footer small{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;color:#9E9384;}
+
+  /* ---- preloader ---- */
+  #preloader{
+    position:fixed;inset:0;z-index:99999;background:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity .7s ease, visibility .7s ease;
+  }
+  #preloader.hide{opacity:0;visibility:hidden;pointer-events:none;}
+  .preloader-ring{
+    width:64px;height:64px;position:relative;
+    animation:preloaderPulse 1.6s ease-in-out infinite;
+  }
+  .preloader-ring svg{width:100%;height:100%;}
+  @keyframes preloaderPulse{
+    0%,100%{transform:scale(1);opacity:1;}
+    50%{transform:scale(0.88);opacity:0.7;}
+  }
+  .preloader-label{
+    position:absolute;bottom:14%;left:50%;transform:translateX(-50%);
+    font-family:'IBM Plex Mono',monospace;font-size:0.68rem;letter-spacing:0.2em;
+    text-transform:uppercase;color:#9E9384;
+  }
+
+  /* ---- hero reveal animation ---- */
+  .hero .eyebrow, .hero h1, .hero-sub, .hero p.desc, .hero .cta-row{
+    opacity:0;transform:translateY(24px);
+    transition:opacity .8s ease, transform .8s ease;
+  }
+  body.loaded .hero .eyebrow{opacity:1;transform:translateY(0);transition-delay:.15s;}
+  body.loaded .hero h1{opacity:1;transform:translateY(0);transition-delay:.3s;}
+  body.loaded .hero-sub{opacity:1;transform:translateY(0);transition-delay:.45s;}
+  body.loaded .hero p.desc{opacity:1;transform:translateY(0);transition-delay:.6s;}
+  body.loaded .hero .cta-row{opacity:1;transform:translateY(0);transition-delay:.75s;}
 </style>
 </head>
 <body>
+
+<div id="preloader">
+  <div class="preloader-ring">
+    <svg viewBox="0 0 100 100"><path d="M50 6 A44 44 0 1 1 49.9 6 Z M50 30 A20 20 0 1 0 50.1 30 Z" fill="url(#preloaderGrad)" fill-rule="evenodd"/></svg>
+  </div>
+  <div class="preloader-label">WRACEGROUP</div>
+</div>
+<script>
+  const _loadStart = Date.now();
+  let _revealed = false;
+  function _revealSite(){
+    if(_revealed) return;
+    _revealed = true;
+    document.getElementById('preloader').classList.add('hide');
+    document.body.classList.add('loaded');
+  }
+  window.addEventListener('load', function(){
+    const elapsed = Date.now() - _loadStart;
+    const minDelay = Math.max(0, 1100 - elapsed);
+    setTimeout(_revealSite, minDelay);
+  });
+  setTimeout(_revealSite, 3500); // safety fallback if load event is slow
+</script>
 
 <svg width="0" height="0" style="position:absolute">
   <defs>
@@ -265,6 +321,9 @@
     </linearGradient>
     <linearGradient id="copperGradSoft" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#6E3A1E"/><stop offset="100%" stop-color="#D08E4F"/>
+    </linearGradient>
+    <linearGradient id="preloaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D08E4F"/><stop offset="100%" stop-color="#E3A465"/>
     </linearGradient>
   </defs>
 </svg>
@@ -655,6 +714,13 @@ function resetZoomLightbox(){
     applyZoomTransform();
   }, {passive:false});
 })();
+document.addEventListener('wheel', (e)=>{
+  const lb = document.getElementById('lightbox');
+  const vlb = document.getElementById('videoLightbox');
+  if(lb.classList.contains('open') || vlb.classList.contains('open')){
+    e.preventDefault();
+  }
+}, {passive:false});
 document.addEventListener('keydown', (e)=>{
   if(!document.getElementById('lightbox').classList.contains('open')) return;
   if(e.key === 'Escape') closeLightbox();
