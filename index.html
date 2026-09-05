@@ -148,6 +148,12 @@
     position:absolute;bottom:14px;right:14px;padding:4px 10px;border-radius:12px;
     background:rgba(20,14,10,0.6);color:#FBF7EF;font-family:'IBM Plex Mono',monospace;font-size:0.66rem;letter-spacing:0.04em;
   }
+  .estate-card .photo-slot .video-badge{
+    position:absolute;bottom:14px;left:14px;padding:5px 12px 5px 10px;border-radius:14px;
+    background:rgba(164,85,43,0.92);color:#FBF7EF;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;letter-spacing:0.04em;
+    display:flex;align-items:center;gap:6px;z-index:2;
+  }
+  .estate-card .photo-slot .video-badge:hover{background:var(--copper-dark);}
   .estate-card .ecopy{padding:22px 24px 26px;}
   .estate-card h3{font-size:1.22rem;font-weight:600;margin-bottom:6px;}
   .estate-card .tag2{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);}
@@ -257,7 +263,7 @@
 
 <header class="hero" id="top">
   <div class="hero-bg">
-    <img src="hero/cover.jpg" alt="Wrace Group">
+    <img src="hero/cover.jpg" alt="Wrace Group" fetchpriority="high">
   </div>
   <div class="wrap">
     <span class="eyebrow">Abuja, FCT — Real Estate Development</span>
@@ -288,7 +294,7 @@
 
     <div class="flagship">
       <div class="photo-slot" data-slot="hero/mall-hero.jpg" style="cursor:pointer;" onclick='openLightbox(["hero/mall-hero.jpg"], "The District by Wrace — Wuse 2, Abuja", 0)'>
-        <img src="hero/mall-hero.jpg" alt="The District by Wrace" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <img src="hero/mall-hero.jpg" alt="The District by Wrace" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
         <div class="ph-fallback" style="display:none;">
           <svg width="34" height="34" viewBox="0 0 100 100"><path d="M50 6 A44 44 0 1 1 49.9 6 Z M50 30 A20 20 0 1 0 50.1 30 Z" fill="var(--ink-soft)" fill-rule="evenodd"/></svg>
           <span>Add photo:<br>hero/mall-hero.jpg</span>
@@ -395,7 +401,7 @@
     <div class="hostel-grid">
       <div class="hostel-card">
         <div class="photo-slot" data-slot="hostels/wrace-hall/cover.jpg" onclick='openLightbox(["hostels/wrace-hall/cover.jpg","hostels/wrace-hall/second.jpg"], "Wrace Hall Accommodations — Mbora, Abuja", 0)'>
-          <img src="hostels/wrace-hall/cover.jpg" alt="Wrace Hall" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <img src="hostels/wrace-hall/cover.jpg" alt="Wrace Hall" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
           <div class="ph-fallback" style="display:none;"><span>Add photo:<br>hostels/wrace-hall/cover.jpg</span></div>
           <div class="expand-hint" style="opacity:1;position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;background:rgba(20,14,10,0.55);color:#FBF7EF;display:flex;align-items:center;justify-content:center;">⤢</div>
           <div class="gallery-badge" style="position:absolute;bottom:14px;right:14px;padding:4px 10px;border-radius:12px;background:rgba(20,14,10,0.6);color:#FBF7EF;font-family:'IBM Plex Mono',monospace;font-size:0.66rem;">1/2 photos</div>
@@ -409,7 +415,7 @@
       </div>
       <div class="hostel-card">
         <div class="photo-slot" data-slot="hostels/wrace-court/cover.jpg" onclick='openLightbox(["hostels/wrace-court/cover.jpg"], "Wrace Court — Mbora, Abuja", 0)'>
-          <img src="hostels/wrace-court/cover.jpg" alt="Wrace Court" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <img src="hostels/wrace-court/cover.jpg" alt="Wrace Court" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
           <div class="ph-fallback" style="display:none;"><span>Add photo:<br>hostels/wrace-court/cover.jpg</span></div>
         </div>
         <div class="hcopy">
@@ -492,6 +498,12 @@
   <div class="lightbox-caption" id="lbCaption"></div>
 </div>
 
+<div class="lightbox" id="videoLightbox">
+  <button class="lightbox-close" onclick="closeVideoLightbox()">&times;</button>
+  <video id="videoLightboxPlayer" controls playsinline style="max-width:100%;max-height:88vh;border-radius:2px;"></video>
+  <div class="lightbox-caption" id="vbCaption"></div>
+</div>
+
 <script>
 let lbImages = [];
 let lbIndex = 0;
@@ -509,7 +521,8 @@ function renderLightbox(){
   const multi = lbImages.length > 1;
   document.getElementById('lbPrev').style.display = multi ? 'flex' : 'none';
   document.getElementById('lbNext').style.display = multi ? 'flex' : 'none';
-  document.getElementById('lbCaption').textContent = multi ? `${lbLabel} — ${lbIndex+1}/${lbImages.length}` : lbLabel;
+  const currentLabel = Array.isArray(lbLabel) ? lbLabel[lbIndex] : lbLabel;
+  document.getElementById('lbCaption').textContent = multi ? `${currentLabel} — ${lbIndex+1}/${lbImages.length}` : currentLabel;
 }
 function navLightbox(dir){
   lbIndex = (lbIndex + dir + lbImages.length) % lbImages.length;
@@ -523,6 +536,24 @@ document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape') closeLightbox();
   if(e.key === 'ArrowLeft') navLightbox(-1);
   if(e.key === 'ArrowRight') navLightbox(1);
+});
+
+function openVideoLightbox(src, label){
+  const player = document.getElementById('videoLightboxPlayer');
+  player.src = src;
+  document.getElementById('vbCaption').textContent = label || '';
+  document.getElementById('videoLightbox').classList.add('open');
+  player.play();
+}
+function closeVideoLightbox(){
+  const player = document.getElementById('videoLightboxPlayer');
+  player.pause();
+  player.currentTime = 0;
+  document.getElementById('videoLightbox').classList.remove('open');
+}
+document.addEventListener('keydown', (e)=>{
+  if(!document.getElementById('videoLightbox').classList.contains('open')) return;
+  if(e.key === 'Escape') closeVideoLightbox();
 });
 
 document.getElementById('contactForm').addEventListener('submit', function(e){
@@ -559,8 +590,8 @@ const estates = [
   {name:"Suburban Estate III", file:"suburban-estate-iii-lifecamp", loc:"Life Camp, Abuja", price:"Contact for rates", gallery:false},
   {name:"Wrace Suburban Estate — Phase 1", file:"suburban-phase1-galadimawa", loc:"Galadimawa, Abuja", price:"Contact for rates", gallery:false},
   {name:"Wrace Suburban Estate — Phase 2", file:"suburban-phase2-galadimawa", loc:"Galadimawa, Abuja", price:"Contact for rates", gallery:false},
-  {name:"Estate 22", file:"estate-22-mabushi", loc:"Mabushi, Abuja", price:"Contact for rates", gallery:true},
-  {name:"Twin Villas", file:"twin-villas-guzape", loc:"Guzape, Abuja", price:"Contact for rates", gallery:false},
+  {name:"Estate 22", file:"estate-22-mabushi", loc:"Mabushi, Abuja", price:"Contact for rates", gallery:true, captions:["Semi Detached","Terrace Duplex"]},
+  {name:"Twin Villas", file:"twin-villas-guzape", loc:"Guzape, Abuja", price:"Contact for rates", gallery:false, video:"videos/twin-villas-tour.mp4"},
   {name:"Residence by Wrace", file:"residence-wuse2", loc:"Wuse 2, Abuja", price:"Contact for rates", gallery:false},
   {name:"Residence IV", file:"residence-iv-gaduwa", loc:"Gaduwa, Abuja", price:"Contact for rates", gallery:true},
   {name:"Residence V", file:"residence-v-jahi", loc:"Jahi, Abuja", price:"Contact for rates", gallery:false},
@@ -572,17 +603,20 @@ estates.forEach(e=>{
   const path = `estates/${e.file}/cover.jpg`;
   const imgs = e.gallery ? [path, `estates/${e.file}/second.jpg`] : [path];
   const imgsJson = JSON.stringify(imgs).replace(/"/g,'&quot;');
+  const labels = e.captions ? e.captions.map(c => `${e.name} — ${e.loc} — ${c}`) : `${e.name} — ${e.loc}`;
+  const labelsJson = JSON.stringify(labels).replace(/"/g,'&quot;');
   const card = document.createElement('div');
   card.className = 'estate-card';
   card.innerHTML = `
-    <div class="photo-slot" data-slot="${path}" onclick='openLightbox(${imgsJson}, "${e.name} — ${e.loc}", 0)'>
-      <img src="${path}" alt="${e.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    <div class="photo-slot" data-slot="${path}" onclick='openLightbox(${imgsJson}, ${labelsJson}, 0)'>
+      <img src="${path}" alt="${e.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
       <div class="ph-fallback" style="display:none;">
         <svg width="26" height="26" viewBox="0 0 100 100"><path d="M50 6 A44 44 0 1 1 49.9 6 Z M50 30 A20 20 0 1 0 50.1 30 Z" fill="var(--ink-soft)" fill-rule="evenodd"/></svg>
         <span>Add photo:<br>${path}</span>
       </div>
       <div class="expand-hint">⤢</div>
       ${e.gallery ? '<div class="gallery-badge">1/2 photos</div>' : ''}
+      ${e.video ? `<div class="video-badge" onclick='event.stopPropagation(); openVideoLightbox("${e.video}", "${e.name} — ${e.loc} — Video Tour")'>▶ Video Tour</div>` : ''}
     </div>
     <div class="ecopy">
       <h3>${e.name}</h3>
