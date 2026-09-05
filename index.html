@@ -179,7 +179,7 @@
   .estate-card .tag2{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);}
 
   /* ---- lightbox ---- */
-  .lightbox{position:fixed;inset:0;z-index:200;background:rgba(15,11,8,0.94);display:none;align-items:center;justify-content:center;padding:5vh 5vw;}
+  .lightbox{position:fixed;inset:0;z-index:9999;background:rgba(15,11,8,0.94);display:none;align-items:center;justify-content:center;padding:5vh 5vw;}
   .lightbox.open{display:flex;}
   .lb-img-wrap{max-width:92vw;max-height:80vh;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:grab;}
   .lb-img-wrap.zoomed{cursor:grab;}
@@ -558,6 +558,24 @@ let lbPanY = 0;
 let lbDragging = false;
 let lbDragStart = {x:0, y:0};
 
+function lockBodyScroll(){
+  const scrollY = window.scrollY;
+  document.body.dataset.scrollY = scrollY;
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${scrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+function unlockBodyScroll(){
+  const scrollY = document.body.dataset.scrollY || 0;
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, parseInt(scrollY));
+}
 function openLightbox(images, label, startIndex){
   lbImages = images;
   lbLabel = label;
@@ -565,6 +583,7 @@ function openLightbox(images, label, startIndex){
   resetZoomLightbox();
   renderLightbox();
   document.getElementById('lightbox').classList.add('open');
+  lockBodyScroll();
 }
 function renderLightbox(){
   document.getElementById('lightboxImg').src = lbImages[lbIndex];
@@ -582,6 +601,7 @@ function navLightbox(dir){
 function closeLightbox(){
   document.getElementById('lightbox').classList.remove('open');
   resetZoomLightbox();
+  unlockBodyScroll();
 }
 function applyZoomTransform(){
   const img = document.getElementById('lightboxImg');
@@ -650,12 +670,14 @@ function openVideoLightbox(src, label){
   document.getElementById('vbCaption').textContent = label || '';
   document.getElementById('videoLightbox').classList.add('open');
   player.play();
+  lockBodyScroll();
 }
 function closeVideoLightbox(){
   const player = document.getElementById('videoLightboxPlayer');
   player.pause();
   player.currentTime = 0;
   document.getElementById('videoLightbox').classList.remove('open');
+  unlockBodyScroll();
 }
 document.addEventListener('keydown', (e)=>{
   if(!document.getElementById('videoLightbox').classList.contains('open')) return;
