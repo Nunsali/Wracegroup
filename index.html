@@ -627,6 +627,13 @@ function resetZoomLightbox(){
   wrap.addEventListener('dblclick', ()=>{
     if(lbZoom > 1) resetZoomLightbox(); else { lbZoom = 2; applyZoomTransform(); }
   });
+  wrap.addEventListener('wheel', (e)=>{
+    if(lbZoom <= 1) return;
+    e.preventDefault();
+    lbPanX -= e.deltaX;
+    lbPanY -= e.deltaY;
+    applyZoomTransform();
+  }, {passive:false});
 })();
 document.addEventListener('keydown', (e)=>{
   if(!document.getElementById('lightbox').classList.contains('open')) return;
