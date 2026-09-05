@@ -133,8 +133,28 @@
   .board-foot{padding:16px 22px 20px;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--ink-soft);border-top:1px solid var(--line);margin-top:6px;}
 
   /* estates */
-  .estate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:2px;background:var(--line);border:1px solid var(--line);}
-  .estate-card{background:var(--panel);display:flex;flex-direction:column;}
+  .carousel-wrap{position:relative;}
+  .estate-grid{
+    display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;
+    padding:6px 6px 22px;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .estate-grid::-webkit-scrollbar{display:none;}
+  .estate-card{flex:0 0 320px;scroll-snap-align:start;background:var(--panel);display:flex;flex-direction:column;border:1px solid var(--line);}
+  .carousel-arrow{
+    position:absolute;top:40%;transform:translateY(-50%);z-index:5;
+    width:46px;height:46px;border-radius:50%;background:var(--panel);border:1px solid var(--line);
+    box-shadow:0 8px 20px rgba(36,26,19,0.15);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:1.3rem;color:var(--ink);transition:background .2s, transform .2s;
+  }
+  .carousel-arrow:hover{background:var(--copper);color:#FBF7EF;transform:translateY(-50%) scale(1.08);}
+  .carousel-arrow.prev{left:-22px;}
+  .carousel-arrow.next{right:-22px;}
+  @media (max-width:600px){.carousel-arrow{display:none;}}
+  .carousel-hint{
+    text-align:center;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--ink-soft);
+    letter-spacing:0.06em;text-transform:uppercase;margin-top:-8px;
+  }
   .estate-card .photo-slot{aspect-ratio:4/3;cursor:pointer;}
   .estate-card .photo-slot img{transition:transform .35s ease;}
   .estate-card .photo-slot:hover img{transform:scale(1.045);}
@@ -161,7 +181,19 @@
   /* ---- lightbox ---- */
   .lightbox{position:fixed;inset:0;z-index:200;background:rgba(15,11,8,0.94);display:none;align-items:center;justify-content:center;padding:5vh 5vw;}
   .lightbox.open{display:flex;}
-  .lightbox img{max-width:100%;max-height:88vh;object-fit:contain;border-radius:2px;}
+  .lb-img-wrap{max-width:92vw;max-height:80vh;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:grab;}
+  .lb-img-wrap.zoomed{cursor:grab;}
+  .lb-img-wrap.dragging{cursor:grabbing;}
+  .lightbox img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:2px;transition:transform .15s ease-out;user-select:none;-webkit-user-drag:none;}
+  .zoom-controls{
+    position:absolute;bottom:26px;right:28px;display:flex;gap:8px;
+    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:24px;padding:6px;
+  }
+  .zoom-btn{
+    width:38px;height:38px;border-radius:50%;background:transparent;border:none;color:#FBF7EF;
+    font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;
+  }
+  .zoom-btn:hover{background:rgba(255,255,255,0.15);}
   .lightbox-close{position:absolute;top:24px;right:28px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);color:#FBF7EF;border:1px solid rgba(255,255,255,0.2);font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
   .lightbox-close:hover{background:rgba(255,255,255,0.2);}
   .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.1);color:#FBF7EF;border:1px solid rgba(255,255,255,0.2);font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -388,7 +420,12 @@
       <div><span class="tag">Residential Portfolio</span><h2>Estates &amp; Residences across Abuja</h2></div>
       <p>Twelve Wrace-developed estates and residences spanning Guzape, Utako, Life Camp, Galadimawa, Mabushi, Gaduwa, Jahi, and Wuse 2.</p>
     </div>
-    <div class="estate-grid" id="estateGrid"></div>
+    <div class="carousel-wrap">
+      <button class="carousel-arrow prev" onclick="scrollEstates(-1)" aria-label="Previous">&#8249;</button>
+      <div class="estate-grid" id="estateGrid"></div>
+      <button class="carousel-arrow next" onclick="scrollEstates(1)" aria-label="Next">&#8250;</button>
+    </div>
+    <div class="carousel-hint">Drag or use the arrows to browse all 12 properties →</div>
   </div>
 </section>
 
@@ -493,9 +530,16 @@
 <div class="lightbox" id="lightbox">
   <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
   <button class="lightbox-nav lightbox-prev" id="lbPrev" onclick="navLightbox(-1)">&#8249;</button>
-  <img id="lightboxImg" src="" alt="">
+  <div class="lb-img-wrap" id="lbImgWrap">
+    <img id="lightboxImg" src="" alt="">
+  </div>
   <button class="lightbox-nav lightbox-next" id="lbNext" onclick="navLightbox(1)">&#8250;</button>
   <div class="lightbox-caption" id="lbCaption"></div>
+  <div class="zoom-controls">
+    <button class="zoom-btn" onclick="zoomLightbox(-1)" aria-label="Zoom out">&#8722;</button>
+    <button class="zoom-btn" onclick="resetZoomLightbox()" aria-label="Reset zoom">1:1</button>
+    <button class="zoom-btn" onclick="zoomLightbox(1)" aria-label="Zoom in">&#43;</button>
+  </div>
 </div>
 
 <div class="lightbox" id="videoLightbox">
@@ -508,11 +552,17 @@
 let lbImages = [];
 let lbIndex = 0;
 let lbLabel = '';
+let lbZoom = 1;
+let lbPanX = 0;
+let lbPanY = 0;
+let lbDragging = false;
+let lbDragStart = {x:0, y:0};
 
 function openLightbox(images, label, startIndex){
   lbImages = images;
   lbLabel = label;
   lbIndex = startIndex || 0;
+  resetZoomLightbox();
   renderLightbox();
   document.getElementById('lightbox').classList.add('open');
 }
@@ -526,16 +576,65 @@ function renderLightbox(){
 }
 function navLightbox(dir){
   lbIndex = (lbIndex + dir + lbImages.length) % lbImages.length;
+  resetZoomLightbox();
   renderLightbox();
 }
 function closeLightbox(){
   document.getElementById('lightbox').classList.remove('open');
+  resetZoomLightbox();
 }
+function applyZoomTransform(){
+  const img = document.getElementById('lightboxImg');
+  img.style.transform = `scale(${lbZoom}) translate(${lbPanX}px, ${lbPanY}px)`;
+  document.getElementById('lbImgWrap').classList.toggle('zoomed', lbZoom > 1);
+}
+function zoomLightbox(dir){
+  lbZoom = Math.min(4, Math.max(1, lbZoom + dir * 0.5));
+  if(lbZoom === 1){ lbPanX = 0; lbPanY = 0; }
+  applyZoomTransform();
+}
+function resetZoomLightbox(){
+  lbZoom = 1; lbPanX = 0; lbPanY = 0;
+  applyZoomTransform();
+}
+(function(){
+  const wrap = document.getElementById('lbImgWrap');
+  wrap.addEventListener('mousedown', (e)=>{
+    if(lbZoom <= 1) return;
+    lbDragging = true;
+    lbDragStart = {x: e.clientX - lbPanX, y: e.clientY - lbPanY};
+    wrap.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', (e)=>{
+    if(!lbDragging) return;
+    lbPanX = e.clientX - lbDragStart.x;
+    lbPanY = e.clientY - lbDragStart.y;
+    applyZoomTransform();
+  });
+  window.addEventListener('mouseup', ()=>{ lbDragging = false; wrap.classList.remove('dragging'); });
+  wrap.addEventListener('touchstart', (e)=>{
+    if(lbZoom <= 1 || e.touches.length !== 1) return;
+    lbDragging = true;
+    lbDragStart = {x: e.touches[0].clientX - lbPanX, y: e.touches[0].clientY - lbPanY};
+  }, {passive:true});
+  wrap.addEventListener('touchmove', (e)=>{
+    if(!lbDragging || e.touches.length !== 1) return;
+    lbPanX = e.touches[0].clientX - lbDragStart.x;
+    lbPanY = e.touches[0].clientY - lbDragStart.y;
+    applyZoomTransform();
+  }, {passive:true});
+  wrap.addEventListener('touchend', ()=>{ lbDragging = false; });
+  wrap.addEventListener('dblclick', ()=>{
+    if(lbZoom > 1) resetZoomLightbox(); else { lbZoom = 2; applyZoomTransform(); }
+  });
+})();
 document.addEventListener('keydown', (e)=>{
   if(!document.getElementById('lightbox').classList.contains('open')) return;
   if(e.key === 'Escape') closeLightbox();
   if(e.key === 'ArrowLeft') navLightbox(-1);
   if(e.key === 'ArrowRight') navLightbox(1);
+  if(e.key === '+' || e.key === '=') zoomLightbox(1);
+  if(e.key === '-' || e.key === '_') zoomLightbox(-1);
 });
 
 function openVideoLightbox(src, label){
@@ -598,6 +697,11 @@ const estates = [
   {name:"White Bay", file:"white-bay-lifecamp", loc:"Life Camp, Abuja", price:"Contact for rates", gallery:false},
   {name:"Residence VII", file:"residence-vii-lifecamp", loc:"Life Camp, Abuja", price:"Contact for rates", gallery:true}
 ];
+function scrollEstates(dir){
+  const grid = document.getElementById('estateGrid');
+  const cardWidth = 320 + 14; // card width + gap
+  grid.scrollBy({left: dir * cardWidth * 2, behavior: 'smooth'});
+}
 const grid = document.getElementById('estateGrid');
 estates.forEach(e=>{
   const path = `estates/${e.file}/cover.jpg`;
