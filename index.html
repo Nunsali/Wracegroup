@@ -298,11 +298,14 @@
   <div class="preloader-label">WRACEGROUP</div>
 </div>
 <script>
+  if('scrollRestoration' in history){ history.scrollRestoration = 'manual'; }
+  window.scrollTo(0, 0);
   const _loadStart = Date.now();
   let _revealed = false;
   function _revealSite(){
     if(_revealed) return;
     _revealed = true;
+    window.scrollTo(0, 0);
     document.getElementById('preloader').classList.add('hide');
     document.body.classList.add('loaded');
   }
@@ -743,6 +746,15 @@ function resetZoomLightbox(){
   });
 
   wrap.addEventListener('wheel', (e)=>{
+    if(e.ctrlKey){
+      // trackpad pinch gesture (Mac reports this as ctrl+wheel)
+      e.preventDefault();
+      const zoomDelta = -e.deltaY * 0.02;
+      lbZoom = Math.min(4, Math.max(1, lbZoom + zoomDelta));
+      if(lbZoom === 1){ lbPanX = 0; lbPanY = 0; }
+      applyZoomTransform();
+      return;
+    }
     if(lbZoom <= 1) return;
     e.preventDefault();
     lbPanX -= e.deltaX;
@@ -844,7 +856,7 @@ estates.forEach(e=>{
   card.className = 'estate-card';
   card.innerHTML = `
     <div class="photo-slot" data-slot="${path}" onclick='openLightbox(${imgsJson}, ${labelsJson}, 0)'>
-      <img src="${path}" alt="${e.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <img src="${path}" alt="${e.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
       <div class="ph-fallback" style="display:none;">
         <svg width="26" height="26" viewBox="0 0 100 100"><path d="M50 6 A44 44 0 1 1 49.9 6 Z M50 30 A20 20 0 1 0 50.1 30 Z" fill="var(--ink-soft)" fill-rule="evenodd"/></svg>
         <span>Add photo:<br>${path}</span>
@@ -859,6 +871,12 @@ estates.forEach(e=>{
       <div class="price-row"><span class="pk">Price</span><span class="pv">${e.price}</span></div>
     </div>`;
   grid.appendChild(card);
+});
+
+// Preload all estate photos in the background so scrolling the carousel feels instant
+estates.forEach(e=>{
+  new Image().src = `estates/${e.file}/cover.jpg`;
+  if(e.gallery){ new Image().src = `estates/${e.file}/second.jpg`; }
 });
 </script>
 
